@@ -1,0 +1,18 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: 'app-production'
+    static_configs:
+      - targets: ['app-production:3000']
+    metrics_path: '/health'
+
+  - job_name: 'app-staging'
+    static_configs:
+      - targets: ['app-staging:3000']
+    metrics_path: '/health'
+
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
