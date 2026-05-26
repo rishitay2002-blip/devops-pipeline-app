@@ -1,5 +1,8 @@
 pipeline {
     agent any
+    tools {
+        nodejs 'NodeJS'
+    }
 
     environment {
         APP_NAME    = 'devops-pipeline-app'
