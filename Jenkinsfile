@@ -84,22 +84,11 @@ pipeline {
                 bat 'npm run lint || exit 0'
                 echo "ESLint analysis complete"
 
-                steps {
-    echo "=== CODE QUALITY STAGE: Analysing code structure and style ==="
-    bat 'npm run lint || exit 0'
-    echo "ESLint analysis complete"
-
-    script {
-        def scannerHome = tool 'SonarScanner'
-        withSonarQubeEnv('SonarQube') {
-            bat "${scannerHome}\\bin\\sonar-scanner.bat -Dsonar.projectKey=devops-pipeline-app -Dsonar.sources=src -Dsonar.tests=tests -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info -Dsonar.host.url=http://host.docker.internal:9000"
-        }
-    }
-    timeout(time: 3, unit: 'MINUTES') {
-        waitForQualityGate abortPipeline: false
-    }
-}
-Dsonar.javascript.lcov.reportPaths=coverage/lcov.info -Dsonar.host.url=http://host.docker.internal:9000'
+                script {
+                    def scannerHome = tool 'SonarScanner'
+                    withSonarQubeEnv('SonarQube') {
+                        bat "\"${scannerHome}\\bin\\sonar-scanner.bat\" -Dsonar.projectKey=devops-pipeline-app -Dsonar.sources=src -Dsonar.tests=tests -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info -Dsonar.host.url=http://host.docker.internal:9000"
+                    }
                 }
                 timeout(time: 3, unit: 'MINUTES') {
                     waitForQualityGate abortPipeline: false
