@@ -85,14 +85,18 @@ pipeline {
                 echo "ESLint analysis complete"
 
                 // SonarQube — uncomment once configured:
-                /*
-                withSonarQubeEnv('SonarQube') {
-                    bat 'sonar-scanner -Dsonar.projectKey=devops-pipeline-app -Dsonar.sources=src -Dsonar.tests=tests -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info'
-                }
-                timeout(time: 5, unit: 'MINUTES') {
-                    waitForQualityGate abortPipeline: true
-                }
-                */
+               steps {
+    echo "=== CODE QUALITY STAGE: Analysing code structure and style ==="
+    bat 'npm run lint || exit 0'
+    echo "ESLint analysis complete"
+
+    withSonarQubeEnv('SonarQube') {
+        bat '''sonar-scanner -Dsonar.projectKey=devops-pipeline-app -Dsonar.sources=src -Dsonar.tests=tests -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info -Dsonar.host.url=http://host.docker.internal:9000'''
+    }
+    timeout(time: 3, unit: 'MINUTES') {
+        waitForQualityGate abortPipeline: false
+    }
+}
             }
             post {
                 success { echo "CODE QUALITY STAGE PASSED" }
