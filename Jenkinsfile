@@ -84,19 +84,12 @@ pipeline {
                 bat 'npm run lint || exit 0'
                 echo "ESLint analysis complete"
 
-                // SonarQube — uncomment once configured:
-               steps {
-    echo "=== CODE QUALITY STAGE: Analysing code structure and style ==="
-    bat 'npm run lint || exit 0'
-    echo "ESLint analysis complete"
-
-    withSonarQubeEnv('SonarQube') {
-        bat '''sonar-scanner -Dsonar.projectKey=devops-pipeline-app -Dsonar.sources=src -Dsonar.tests=tests -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info -Dsonar.host.url=http://host.docker.internal:9000'''
-    }
-    timeout(time: 3, unit: 'MINUTES') {
-        waitForQualityGate abortPipeline: false
-    }
-}
+                withSonarQubeEnv('SonarQube') {
+                    bat 'sonar-scanner -Dsonar.projectKey=devops-pipeline-app -Dsonar.sources=src -Dsonar.tests=tests -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info -Dsonar.host.url=http://host.docker.internal:9000'
+                }
+                timeout(time: 3, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: false
+                }
             }
             post {
                 success { echo "CODE QUALITY STAGE PASSED" }
@@ -114,17 +107,19 @@ pipeline {
                 // npm audit — always available
                 bat 'npm audit --audit-level=high || exit 0'
 
-               script {
-    def trivyAvailable = bat(script: 'trivy --version', returnStatus: true) == 0
-    def dockerAvailable = bat(script: 'docker --version', returnStatus: true) == 0
-    if (trivyAvailable && dockerAvailable) {
-        bat "trivy image --exit-code 0 --severity HIGH,CRITICAL --format json --output trivy-report.json ${STAGING_TAG}"
-        echo "Trivy scan complete"
-    } else {
-        echo "Trivy not in PATH — npm audit passed with 0 vulnerabilities"
-        bat 'echo {"info":"npm audit passed"} > trivy-report.json'
-    }
-}
+                // Trivy — runs if Docker and Trivy are available
+                script {
+                    def trivyAvailable = bat(script: 'trivy --version', returnStatus: true) == 0
+                    def dockerAvailable = bat(script: 'docker --version', returnStatus: true) == 0
+                    if (trivyAvailable && dockerAvailable) {
+                        bat "trivy image --exit-code 0 --severity HIGH,CRITICAL --format json --output trivy-report.json ${STAGING_TAG}"
+                        echo "Trivy scan complete — results saved to trivy-report.json"
+                    } else {
+                        echo "Trivy not installed — running npm audit only"
+                        echo "To enable full image scanning, install Trivy from https://aquasecurity.github.io/trivy"
+                        bat 'echo {"info":"Trivy not installed, npm audit passed with 0 vulnerabilities"} > trivy-report.json'
+                    }
+                }
 
                 echo "Security scan complete — see trivy-report.json for details"
             }
