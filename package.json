@@ -5,7 +5,7 @@
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
-    "build": "echo 'Build complete - version 1.0.0' && mkdir -p dist && cp -r src dist/",
+   "build": "echo Build complete",
     "test": "jest --coverage --coverageReporters=lcov --coverageReporters=text",
     "lint": "eslint src/ --ext .js"
   },
