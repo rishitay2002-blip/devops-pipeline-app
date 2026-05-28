@@ -86,8 +86,10 @@ pipeline {
 
                 script {
                     def sqHome = tool 'SonarScanner'
-                    withCredentials([string(credentialsId: 'sonarqube-token', variable: 'SONAR_TOKEN')]) {
-                        bat "\"${sqHome}\\bin\\sonar-scanner.bat\" -Dsonar.projectKey=devops-pipeline-app -Dsonar.sources=src -Dsonar.tests=tests -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info -Dsonar.host.url=http://host.docker.internal:9000 -Dsonar.token=%SONAR_TOKEN%"
+                    withSonarQubeEnv('SonarQube') {
+                        withCredentials([string(credentialsId: 'sonarqube-token', variable: 'SONAR_TOKEN')]) {
+                            bat "\"${sqHome}\\bin\\sonar-scanner.bat\" -Dsonar.projectKey=devops-pipeline-app -Dsonar.sources=src -Dsonar.tests=tests -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info -Dsonar.host.url=http://host.docker.internal:9000 -Dsonar.token=%SONAR_TOKEN%"
+                        }
                     }
                 }
                 timeout(time: 3, unit: 'MINUTES') {
